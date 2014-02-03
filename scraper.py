@@ -52,8 +52,8 @@ def soupify(url):
 # Remove letters and characters from string and turn into integer
 #======================
 def numify(in_str):
-    string = in_str
-    return int(string)
+    newNum = int(re.sub('[^0-9]', '', in_str))
+    return newNum
 
 #======================
 # addSearchPages
@@ -107,13 +107,12 @@ def extractData(url):
     end = soup.find_all('time')[-1].string
     goal = float(soup.find(id='pledged')['data-goal'])
     funded = float(soup.find(id='pledged').find('data')['data-value'])
-    backers = soup.find(id='backers_count').find('data').contents[0]
-    backers = int(re.sub('[^0-9]', '', backers))
+    backers = numify(soup.find(id='backers_count').find('data').contents[0])
     rewards = soup.find(id='what-you-get').find_all('li')
     reward_price = []
     reward_back = []
     for reward in rewards:
-        reward_price.append(int(re.sub('[^0-9]', '', reward.h5.span.string)))
+        reward_price.append(numify(reward.h5.span.string))
         reward_back.append(int(reward.find('span',{'class':'num-backers'}).string[1:].split(' ')[0]))
     return title, category, start, end, goal, funded, backers, len(rewards), reward_price, reward_back
 
@@ -128,7 +127,7 @@ def writeCSV(crawl_list,time,errors):
     Writes important data to CSV
     Returns nothing
     '''
-    newT = re.sub('[^0-9]', '', str(time))
+    newT = str(numify(str(time)))
     newF = open(search+'_'+newT+'.csv', 'w', newline='')
     writer = csv.writer(newF, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
     writer.writerow(headers)
@@ -202,4 +201,4 @@ startCrawl()
 # extractData(to_crawl[1])
 
 # time = datetime.datetime.now()
-# writeCSV(to_crawl,time)
+# writeCSV(to_crawl,time,errors=0)
